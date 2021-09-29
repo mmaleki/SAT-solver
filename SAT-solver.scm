@@ -1,0 +1,35 @@
+(define (cnf? formula)
+  (cond ((symbol? formula) #f)
+	((pair? formula)
+	 (cond ((eq? (car formula) '-)
+		(cnf? (cadr formula)))
+	       ((eq? (car formula) '/\)
+		     (and (cnf? (cadr formula)) (cnf? (caadr formula)))))))))
+
+(define (2-disjunction? formula)
+  (let ((op (car formula))
+	(x (cadr formula))
+	(y (caddr formula)))
+    (cond ((and (eq? op '\/) (symbol? x) (symbol? y))
+	   #t)
+	  (else #f))))
+
+(define (disjunction? formula)
+  (let ((op (car formula))
+	(fst (cadr formula))
+	(snd (caddr formula)))
+    (cond ((and (symbol? fst) (symbol? snd))
+	   (2-disjunction? formula))
+	  ((and (pair? fst) (symbol? snd))
+	   (disjunction? fst))
+	  ((and (pair? snd) (symbol? fst))
+	   (disjunction? snd))
+	  ((and (pair? fst) (pair? snd))
+	   (and (disjunction? fst) (disjunction? snd)))
+	  (else #f))))
+
+
+;;> (disjunction? '(\/ x y))
+;;#t
+;;> (disjunction? '(\/ (\/ x y) z))
+;;#t
